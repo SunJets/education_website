@@ -108,7 +108,7 @@ def invalid_token_response(error):
     return jsonify(error="Invalid token"), 422
 
 @jwt.expired_token_loader
-def expired_token_response(expired_token):
+def expired_token_response(jwt_header, jwt_payload):
     return jsonify(error="Expired token"), 401
 
 @jwt.revoked_token_loader
