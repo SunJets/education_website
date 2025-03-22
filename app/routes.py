@@ -72,7 +72,7 @@ def save_courses():
         flash('Courses are not found')
         return jsonify(error=get_flashed_messages()[0]), 400
 
-    add_courses_to_db(courses)
+    add_courses_to_db(courses, user.id)
 
     message = get_flashed_messages()
     if not message:
@@ -106,12 +106,12 @@ def custom_unauthorized_response(callback):
 
 
 
-def add_courses_to_db(course_list):
+def add_courses_to_db(course_list, user_id):
     for course in course_list:
         title = course['title']
         description = course['description']
 
-        new_course = Course(title=title, description=description)
+        new_course = Course(title=title, description=description, user_ref_id=user_id)
         try:
             db.session.add(new_course)
             db.session.commit()
