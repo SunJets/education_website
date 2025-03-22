@@ -10,7 +10,7 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    try:
+    try:    # check if a user is authorized
         current_user = get_jwt_identity()
         if current_user:
             flash('You are already authorized')
@@ -23,8 +23,8 @@ def login():
     password = request.json.get('password')
 
     user_request = sa.select(User).where(User.username == username)
-    user = db.session.scalar(user_request)
-    if user is None or not user.check_password(password):
+    user = db.session.scalar(user_request)    # get user from db
+    if user is None or not user.check_password(password):   # check if user exists or his password is valid
         flash('Invalid username or password')
         return jsonify(error=get_flashed_messages()), 400
 
@@ -35,7 +35,7 @@ def login():
 
 @app.route('/api/register', methods=['POST'])
 def register():
-    try:
+    try:    # check if a user is authorized
         current_user = get_jwt_identity()
         if current_user:
             return redirect(url_for('index'))
@@ -47,12 +47,12 @@ def register():
     email = request.json.get('email')
     password = request.json.get('password')
 
-    if not validate_username(username) and not validate_email(email):
+    if not validate_username(username) and not validate_email(email):   # validate info
         flash('This user already exists')
         return jsonify(error=get_flashed_messages()), 400
 
-    user = User(username=username, email=email)
-    user.set_password(password)
+    user = User(username=username, email=email)     # create a new user
+    user.set_password(password)     # add and hash the password
     db.session.add(user)
     db.session.commit()
 
