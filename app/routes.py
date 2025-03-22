@@ -42,7 +42,7 @@ def register():
     email = request.json.get('email')
     password = request.json.get('password')
 
-    if not validate_username(username) and not validate_email(email):   # validate info
+    if not validate_username(username) or not validate_email(email):   # validate info
         flash('This user already exists')
         return jsonify(error=get_flashed_messages()[0]), 400
 
