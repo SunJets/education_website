@@ -10,14 +10,10 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    try:    # check if a user is authorized
-        current_user = get_jwt_identity()
-        if current_user:
-            flash('You are already authorized')
-            return jsonify(error=get_flashed_messages()), 400
-
-    except NoAuthorizationError:
-        pass
+    current_user = get_jwt_identity()   # check if a user is authorized
+    if current_user is not None:
+        flash('You are already authorized')
+        return jsonify(error=get_flashed_messages()), 400
 
     username = request.json.get('username')
     password = request.json.get('password')
@@ -35,13 +31,10 @@ def login():
 
 @app.route('/api/register', methods=['POST'])
 def register():
-    try:    # check if a user is authorized
-        current_user = get_jwt_identity()
-        if current_user:
-            return redirect(url_for('index'))
-
-    except NoAuthorizationError:
-        pass
+    current_user = get_jwt_identity()  # check if a user is authorized
+    if current_user is not None:
+        flash('You are already authorized')
+        return jsonify(error=get_flashed_messages()), 400
 
     username = request.json.get('username')
     email = request.json.get('email')
