@@ -9,6 +9,7 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 
 
 @app.route('/api/login', methods=['POST'])
+@jwt_required(optional=True)
 def login():
     current_user = get_jwt_identity()   # check if a user is authorized
     if current_user is not None:
@@ -30,6 +31,7 @@ def login():
 
 
 @app.route('/api/register', methods=['POST'])
+@jwt_required(optional=True)
 def register():
     current_user = get_jwt_identity()  # check if a user is authorized
     if current_user is not None:
