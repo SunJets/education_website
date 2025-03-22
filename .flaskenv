@@ -1,1 +1,1 @@
-FLASK_APP=ai_education.py
+FLASK_APP=wsgi.py
