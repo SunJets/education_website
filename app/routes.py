@@ -116,6 +116,11 @@ def revoked_token_response(jwt_header, jwt_payload):
     return jsonify(error="Revoked token"), 422
 
 
+@app.errorhandler(401)
+def unauthorized_error_handler(error):
+    return jsonify(error="Unauthorized"), 401
+
+
 def add_courses_to_db(course_list, user_id):
     for course in course_list:
         title = course['title']
