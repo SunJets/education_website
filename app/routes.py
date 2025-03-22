@@ -23,7 +23,7 @@ def login():
     user = db.session.scalar(user_request)    # get user from db
     if user is None or not user.check_password(password):   # check if user exists or his password is valid
         flash('Invalid username or password')
-        return jsonify(error=get_flashed_messages()), 400
+        return jsonify(error=get_flashed_messages()[0]), 400
 
     token = create_access_token(identity=username)
 
@@ -44,7 +44,7 @@ def register():
 
     if not validate_username(username) and not validate_email(email):   # validate info
         flash('This user already exists')
-        return jsonify(error=get_flashed_messages()), 400
+        return jsonify(error=get_flashed_messages()[0]), 400
 
     user = User(username=username, email=email)     # create a new user
     user.set_password(password)     # add and hash the password
