@@ -14,7 +14,7 @@ class User(db.Model):
     password_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(256))
     #role: so.Mapped[int] = so.mapped_column(sa.SmallInteger, nullable=False)
 
-    courses: so.WriteOnlyMapped['Course'] = so.relationship(back_populates='author')
+    courses: so.WriteOnlyMapped['UserCourse'] = so.relationship(back_populates='author')
 
 
     def set_password(self, password):
