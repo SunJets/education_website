@@ -6,6 +6,7 @@ from app import db
 from app.models import User
 from flask_jwt_extended.exceptions import NoAuthorizationError
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+import re
 
 
 @app.route('/api/login', methods=['POST'])
@@ -55,6 +56,10 @@ def register():
 
 
 def validate_username(username):
+    regex = r'^[A-Za-z0-9_]+$'
+    if not re.fullmatch(regex, username):    # check if nickname has nothing except numbers, english letters
+        return False                         # and underscore
+
     user = db.session.scalar(sa.select(User).where(User.username == username))
     if user is not None:
         return False
@@ -63,6 +68,10 @@ def validate_username(username):
 
 
 def validate_email(email):
+    regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
+    if not re.fullmatch(regex, email):  # check if email is written correctly
+        return False
+
     user = db.session.scalar(sa.select(User).where(User.email == email))
     if user is not None:
         return False
