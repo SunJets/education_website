@@ -1,13 +1,12 @@
-from typing import Optional
 from datetime import datetime, timezone
 from app import db
 import sqlalchemy as sa
 import sqlalchemy.orm as so
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
 from app import login
 
-class User(UserMixin, db.Model):
+
+class User(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     username: so.Mapped[str] = so.mapped_column(sa.String(64), unique=True, index=True, nullable=False)
     email: so.Mapped[str] = so.mapped_column(sa.String(120), unique=True, index=True, nullable=False)
@@ -53,8 +52,3 @@ class UserCourse(db.Model):
 
     def __repr__(self):
         return f"User's Course <{self.name}>"
-
-
-@login.user_loader
-def load_user(id):
-    return db.session.get(User, int(id))
