@@ -4,7 +4,6 @@ from app import db
 import sqlalchemy as sa
 import sqlalchemy.orm as so
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import login
 
 
 class User(db.Model):
