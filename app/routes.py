@@ -80,7 +80,7 @@ def save_courses():
     return jsonify(message=message), 200
 
 
-@app.route('/api/save-courses', methods=['GET'])
+@app.route('/api/get-courses', methods=['GET'])
 @jwt_required()
 def get_courses():
     username = get_jwt_identity()
