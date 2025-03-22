@@ -1,8 +1,8 @@
 """course has user_id
 
-Revision ID: 454194e605f7
+Revision ID: 824554db9e11
 Revises: 
-Create Date: 2025-03-22 21:47:40.337117
+Create Date: 2025-03-22 22:13:34.489103
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '454194e605f7'
+revision = '824554db9e11'
 down_revision = None
 branch_labels = None
 depends_on = None

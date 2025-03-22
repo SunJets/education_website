@@ -13,7 +13,7 @@ class User(db.Model):
     password_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(256))
     #role: so.Mapped[int] = so.mapped_column(sa.SmallInteger, nullable=False)
 
-    custom_courses: so.WriteOnlyMapped['UserCourse'] = so.relationship(back_populates='author')
+    custom_courses: so.WriteOnlyMapped['UserCourse'] = so.relationship(back_populates='author_custom_course')
 
     courses: so.WriteOnlyMapped['Course'] = so.relationship(back_populates='author_course')
 
