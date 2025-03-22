@@ -103,7 +103,17 @@ def get_courses():
 def custom_unauthorized_response(callback):
     return jsonify(error="Unauthorized user"), 401
 
+@jwt.invalid_token_loader
+def invalid_token_response(error):
+    return jsonify(error="Invalid token"), 422
 
+@jwt.expired_token_loader
+def expired_token_response(expired_token):
+    return jsonify(error="Expired token"), 401
+
+@jwt.revoked_token_loader
+def revoked_token_response(jwt_header, jwt_payload):
+    return jsonify(error="Revoked token"), 422
 
 
 def add_courses_to_db(course_list, user_id):
