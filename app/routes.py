@@ -222,7 +222,7 @@ def custom_unauthorized_response(callback):
 
 @jwt.invalid_token_loader
 def invalid_token_response(error):
-    return jsonify(error="Invalid token"), 422
+    return jsonify(error="Invalid token"), 401
 
 @jwt.expired_token_loader
 def expired_token_response(jwt_header, jwt_payload):
