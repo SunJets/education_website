@@ -3,7 +3,7 @@ from flask import url_for, request, redirect, flash, jsonify, get_flashed_messag
 from app import app
 import sqlalchemy as sa
 from app import db
-from app.models import User, Course
+from app.models import User, Course, UserCourse
 from flask_jwt_extended.exceptions import NoAuthorizationError
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 import re
@@ -99,6 +99,73 @@ def get_courses():
     return jsonify(courses=courses), 200
 
 
+
+@app.route('/api/save-custom-courses', methods=['POST'])
+@jwt_required()
+def save_custom_courses():
+    username = get_jwt_identity()
+    user = db.session.scalar(sa.select(User).where(User.username == username))
+
+    if user is None:
+        flash('User is not found')
+        return jsonify(error=get_flashed_messages()[0]), 400
+
+    course_id = request.json.get('id')
+
+    if course_id is None:
+        flash('Course is not found')
+        return jsonify(error=get_flashed_messages()[0]), 400
+
+    course_id = int(course_id)
+    courses_title = request.json.get('title')
+    courses_description = request.json.get('description')
+
+    add_custom_course_to_db(courses_title, courses_description, user.id, course_id)
+
+    message = get_flashed_messages()
+    if not message:
+        message = 'success'
+    return jsonify(message=message), 200
+
+
+@app.route('/api/get-custom-course-names/<int:id>', methods=['GET'])    # get all custom course names with id
+@jwt_required()
+def get_custom_course_names(id):
+    username = get_jwt_identity()
+    user = db.session.scalar(sa.select(User).where(User.username == username))
+
+    if user is None:
+        flash('User is not found')
+        return jsonify(error=get_flashed_messages()[0]), 400
+
+    custom_courses = create_custom_course_names_dict(user, id)
+
+    if custom_courses is None:
+        flash('Custom courses are not found')
+        return jsonify(error=get_flashed_messages()[0]), 400
+
+    return jsonify(courses=custom_courses), 200
+
+
+@app.route('/api/get-custom-course/<int:id>', methods=['GET'])      # get info about this custom course
+@jwt_required()
+def get_custom_course(id):
+    username = get_jwt_identity()
+    user = db.session.scalar(sa.select(User).where(User.username == username))
+
+    if user is None:
+        flash('User is not found')
+        return jsonify(error=get_flashed_messages()[0]), 400
+
+    custom_course = db.session.scalar(sa.select(UserCourse).where(UserCourse.id == id))
+
+    if custom_course is None:
+        flash('Custom course is not found')
+        return jsonify(error=get_flashed_messages()[0]), 400
+
+    return jsonify(title=custom_course.title, description=custom_course.description), 200
+
+
 @jwt.unauthorized_loader
 def custom_unauthorized_response(callback):
     return jsonify(error="Unauthorized user"), 401
@@ -141,6 +208,27 @@ def create_courses_dict(user):
     return course_list
 
 
+def add_custom_course_to_db(title, description, user_id, course_id):
+        new_custom_course = UserCourse(title=title, description=description, user_ref_id=user_id, course_ref_id=course_id)
+
+        try:
+            db.session.add(new_custom_course)
+            db.session.commit()
+        except:
+            flash(f'''Custom course "{title}" wasn't added''')
+            db.session.rollback()
+
+
+def create_custom_course_names_dict(user, course_id):    # ONLY FOR ID AND NAME OF EACH CUSTOM COURSE
+    custom_course_list = []
+    custom_courses = db.session.scalars(user.custom_courses.select()).all()
+
+    for course in custom_courses:
+        course_dict = {'id': course_id, 'title': course.title}
+        custom_course_list.append(course_dict)
+
+    return custom_course_list
+
 
 def validate_username(username):
     regex = r'^[A-Za-z0-9_]+$'
@@ -164,3 +252,4 @@ def validate_email(email):
         return False
 
     return True
+
