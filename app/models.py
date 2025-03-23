@@ -13,7 +13,7 @@ class User(db.Model):
     password_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(256))
     #role: so.Mapped[int] = so.mapped_column(sa.SmallInteger, nullable=False)
 
-    custom_courses: so.WriteOnlyMapped['UserCourse'] = so.relationship(back_populates='author_custom_course')
+    custom_courses: so.WriteOnlyMapped['CustomCourse'] = so.relationship(back_populates='author_custom_course')
 
     courses: so.WriteOnlyMapped['Course'] = so.relationship(back_populates='author_course')
 
@@ -33,20 +33,22 @@ class Course(db.Model):
     title: so.Mapped[str] = so.mapped_column(sa.String(64), index=True, nullable=False)
     description: so.Mapped[str] = so.mapped_column(sa.Text, index=True, nullable=False)
     user_ref_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id), index=True)
+    status: so.Mapped[int] = so.mapped_column(sa.SmallInteger, default=1)
 
     author_course: so.Mapped[User] = so.relationship(back_populates='courses')
-    user_courses: so.WriteOnlyMapped['UserCourse'] = so.relationship(back_populates='original_course')
+    user_courses: so.WriteOnlyMapped['CustomCourse'] = so.relationship(back_populates='original_course')
 
     def __repr__(self):
         return f'Course <{self.title}>'
 
 
-class UserCourse(db.Model):
+class CustomCourse(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     name: so.Mapped[str] = so.mapped_column(sa.String(64), index=True, nullable=False)
     description: so.Mapped[str] = so.mapped_column(sa.Text, index=True, nullable=False)
     timestamp: so.Mapped[datetime] = so.mapped_column(index=True, default=lambda: datetime.now(timezone.utc))
-    progress: so.Mapped[str] = so.mapped_column(sa.SmallInteger)
+    progress: so.Mapped[str] = so.mapped_column(sa.SmallInteger, default=0)
+    status: so.Mapped[int] = so.mapped_column(sa.SmallInteger, default=1)
     user_ref_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id), index=True)
     course_ref_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Course.id), index=True)
 

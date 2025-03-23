@@ -1,10 +1,8 @@
-import flask_jwt_extended.exceptions
-from flask import url_for, request, redirect, flash, jsonify, get_flashed_messages
+from flask import request, flash, jsonify, get_flashed_messages
 from app import app
 import sqlalchemy as sa
 from app import db
-from app.models import User, Course, UserCourse
-from flask_jwt_extended.exceptions import NoAuthorizationError
+from app.models import User, Course, CustomCourse
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 import re
 from app import jwt
@@ -99,6 +97,26 @@ def get_courses():
     return jsonify(courses=courses), 200
 
 
+@app.route('/api/delete-course/<int:id>', methods=['DELETE'])
+@jwt_required()
+def delete_course(id):
+    username = get_jwt_identity()
+    user = db.session.scalar(sa.select(User).where(User.username == username))
+
+    if user is None:
+        flash('User is not found')
+        return jsonify(error=get_flashed_messages()[0]), 400
+
+    course = db.session.scalar(user.courses.select().where(Course.id == id))
+
+    if course is None:
+        flash('Courses are not found')
+        return jsonify(error=get_flashed_messages()[0]), 400
+
+    safe_delete_any_course(course)
+
+    return jsonify(message='success'), 200
+
 
 @app.route('/api/save-custom-courses', methods=['POST'])
 @jwt_required()
@@ -131,6 +149,11 @@ def save_custom_courses():
 @app.route('/api/get-custom-course-names/<int:id>', methods=['GET'])    # get all custom course names with id
 @jwt_required()
 def get_custom_course_names(id):
+    """
+    this function and get_custom_course separated because it divides rendering names and rendering their body
+    this is for better performance because the client's part will contain less content
+    """
+
     username = get_jwt_identity()
     user = db.session.scalar(sa.select(User).where(User.username == username))
 
@@ -150,6 +173,12 @@ def get_custom_course_names(id):
 @app.route('/api/get-custom-course/<int:id>', methods=['GET'])      # get info about this custom course
 @jwt_required()
 def get_custom_course(id):
+    """
+    this function and get_custom_course_names separated because it divides rendering names and rendering their body
+    this is for better performance because the client's part will contain less content
+    """
+
+
     username = get_jwt_identity()
     user = db.session.scalar(sa.select(User).where(User.username == username))
 
@@ -157,13 +186,34 @@ def get_custom_course(id):
         flash('User is not found')
         return jsonify(error=get_flashed_messages()[0]), 400
 
-    custom_course = db.session.scalar(sa.select(UserCourse).where(UserCourse.id == id))
+    custom_course = db.session.scalar(sa.select(CustomCourse).where(CustomCourse.id == id))
 
     if custom_course is None:
         flash('Custom course is not found')
         return jsonify(error=get_flashed_messages()[0]), 400
 
     return jsonify(title=custom_course.title, description=custom_course.description), 200
+
+
+@app.route('/api/delete-custom-course/<int:id>', methods=['DELETE'])
+@jwt_required()
+def delete_custom_course(id):
+    username = get_jwt_identity()
+    user = db.session.scalar(sa.select(User).where(User.username == username))
+
+    if user is None:
+        flash('User is not found')
+        return jsonify(error=get_flashed_messages()[0]), 400
+
+    custom_course = db.session.scalar(user.custom_courses.select().where(CustomCourse.id == id))
+
+    if custom_course is None:
+        flash('Custom course is not found')
+        return jsonify(error=get_flashed_messages()[0]), 400
+
+    safe_delete_any_course(custom_course)
+
+    return jsonify(message='success'), 200
 
 
 @jwt.unauthorized_loader
@@ -209,7 +259,7 @@ def create_courses_dict(user):
 
 
 def add_custom_course_to_db(title, description, user_id, course_id):
-        new_custom_course = UserCourse(title=title, description=description, user_ref_id=user_id, course_ref_id=course_id)
+        new_custom_course = CustomCourse(title=title, description=description, user_ref_id=user_id, course_ref_id=course_id)
 
         try:
             db.session.add(new_custom_course)
@@ -228,6 +278,11 @@ def create_custom_course_names_dict(user, course_id):    # ONLY FOR ID AND NAME 
         custom_course_list.append(course_dict)
 
     return custom_course_list
+
+
+def safe_delete_any_course(course):      # change status of course or custom course to 0
+    course.status = 0
+    db.session.commit()
 
 
 def validate_username(username):
